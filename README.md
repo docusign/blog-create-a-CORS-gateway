@@ -46,7 +46,7 @@ department or consultant to create a secure gateway.
 These instructions do **not** provide information
 on Information Security-related issues or settings.
 
-See the [LICENSE](license) file for additional information.
+See the [LICENSE](LICENSE) file for additional information.
 
 ## Installation
 
