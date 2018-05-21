@@ -5,7 +5,7 @@ creating private CORS gateways for use with
 DocuSign.
 
 This repository accompanies the DocuSign Developer blog post
-[Building Single-Page Applications with DocuSign and CORS: Part 2](https://www.docusign.com/blog/dsdev-building-single-page-applications-with-docusign-and-cors-part-2/).
+[Building Single-Page Applications with DocuSign and CORS: Part 2](https://www.docusign.com/blog/dsdev-building-single-page-applications-with-docusign-and-cors-part-2/). See the blog post for additional information.
 
 ## Summary
 You'll set up two CORS proxies/gateways, one for demo.docusign.net, and one
