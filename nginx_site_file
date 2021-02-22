@@ -1,0 +1,85 @@
+# 
+# nginx CORS proxy site file for https://demo.docusign.net
+# Thank you to https://gist.github.com/pauloricardomg/7084524
+#
+# The proxy address is demoproxy.example.com
+# The permitted origin is *.foobar.com
+#
+server {
+        listen 80;
+        listen [::]:80;
+
+        root /var/www/demoproxy.example.com/html;
+        server_name demoproxy.example.com www.demoproxy.example.com;
+
+    # Only proxy API requests
+    location ^~ /restapi {
+        proxy_connect_timeout 600;
+        proxy_send_timeout    600;
+        proxy_read_timeout    600;
+        send_timeout          600;
+        proxy_max_temp_file_size 128M;
+        client_max_body_size 128M;
+
+        proxy_redirect off;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    
+        # Nginx doesn't support nested If statements, so we
+        # concatenate compound conditions on the $cors variable
+        # and process later
+
+        # If request comes from allowed subdomain
+        # (*.foobar.com) or localhost then we enable CORS
+        # REMOVE localhost for production!
+        if ($http_origin ~* (https?:\/\/([a-z0-9-]+\.)*(foobar\.com|localhost)(:[0-9]+)?$)) {
+            set $cors "1";
+        }
+        
+        # OPTIONS indicates a CORS pre-flight request
+        if ($request_method = 'OPTIONS') {
+            set $cors "${cors}o";
+        }
+    
+        # Append CORS headers to any request from 
+        # allowed CORS domain, except OPTIONS
+        if ($cors = "1") {
+            add_header 'Access-Control-Allow-Origin' $http_origin;
+            add_header 'Access-Control-Allow-Credentials' 'true';
+            add_header 'Access-Control-Expose-Headers' 'Cache-Control,Content-Encoding,Content-Length,Content-Type,Date,Strict-Transport-Security,X-RateLimit-Reset,X-RateLimit-Limit,X-RateLimit-Remaining,X-BurstLimit-Limit,X-BurstLimit-Remaining,X-DocuSign-TraceToken,Cookie';
+            proxy_pass https://demo.docusign.net;
+            break;
+        }
+    
+        # OPTIONS (pre-flight) request from allowed 
+        # CORS domain. return response directly
+        if ($cors = "1o") {
+            add_header 'Access-Control-Allow-Origin' $http_origin;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS, PUT, DELETE';
+            add_header 'Access-Control-Allow-Credentials' 'true';
+            add_header 'Access-Control-Allow-Headers' 'Origin,Content-Type,Accept,Authorization,Accept-Encoding,Cache-Control,Cookie,Content-Length,Host,Referer,User-Agent,x-docusign-sdk';
+            add_header 'Access-Control-Expose-Headers' 'Cache-Control,Content-Encoding,Content-Length,Content-Type,Date,Strict-Transport-Security,X-RateLimit-Reset,X-RateLimit-Limit,X-RateLimit-Remaining,X-BurstLimit-Limit,X-BurstLimit-Remaining,X-DocuSign-TraceToken,Cookie';
+
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 204;
+            break;
+        }
+  
+        # Requests from non-allowed CORS domains
+        return 403;
+    }
+
+    location ^~ / {
+        # requests for other locations
+        return 403;
+    }
+
+    # Set by Certbot...
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/demoproxy.example.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/demoproxy.example.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+}
