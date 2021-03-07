@@ -44,9 +44,9 @@ server {
         # Append CORS headers to any request from 
         # allowed CORS domain, except OPTIONS
         if ($cors = "1") {
-            add_header 'Access-Control-Allow-Origin' $http_origin;
-            add_header 'Access-Control-Allow-Credentials' 'true';
-            add_header 'Access-Control-Expose-Headers' 'Cache-Control,Content-Encoding,Content-Length,Content-Type,Date,Strict-Transport-Security,X-RateLimit-Reset,X-RateLimit-Limit,X-RateLimit-Remaining,X-BurstLimit-Limit,X-BurstLimit-Remaining,X-DocuSign-TraceToken,Cookie';
+            add_header 'Access-Control-Allow-Origin' $http_origin always;
+            add_header 'Access-Control-Allow-Credentials' 'true' always;
+            add_header 'Access-Control-Expose-Headers' 'Cache-Control,Content-Encoding,Content-Length,Content-Type,Date,Strict-Transport-Security,X-RateLimit-Reset,X-RateLimit-Limit,X-RateLimit-Remaining,X-BurstLimit-Limit,X-BurstLimit-Remaining,X-DocuSign-TraceToken,Cookie' always;
             proxy_pass https://demo.docusign.net;
             break;
         }
